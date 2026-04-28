@@ -1,0 +1,101 @@
+---
+geometry: margin=0.25in
+header-includes: 
+    - \usepackage{setspace}\doublespacing
+output:
+  pdf_document: default
+  html_document:
+    theme: readable
+    toc: yes
+urlcolor: cyan
+fontsize: 10pt
+---
+
+```{r, echo = FALSE, warning = FALSE, message = FALSE}
+knitr::opts_chunk$set(tidy.opts=list(width.cutoff=80), tidy=TRUE)
+```
+
+# Introduction
+This is a critique on the paper written by Chaudhary and Singh in 2021 titled [Community Detection Using Unsupervised Machine Learning Techniques onCOVID-19 Dataset](https://link.springer.com/article/10.1007/s13278-021-00734-2)
+]. There has not been a more socioeconomically relevant disease as COVID-19 since the Spanish Flu pandemic, and in this paper they hope to achieve two goals: 
+
+* Find variables that contribute most to the disease state of a country. 
+* Cluster the countries into groups based on these variables.
+
+They hope to achieve these two goals with principal component analysis and subsequent K-means clustering. They also wanted to justify their use of prior use of principal component analysis before K-means clustering in order to create higher resolution clusters. 
+
+# Background
+COVID-19 was classified as a global pandemic on March 11, 2020 and although research exists for a similar coronavirus, SARS-CoV-1, research for the disease was limited in terms of understanding how it transmits between individuals, strategies effective at stemming spread without the use of medicine, and techniques that could slow the spread that were both cost and time-effective. 
+
+Most of the studies on COVID-19/SARS-CoV-2 published at the time (accoridng to the authors) have been microscopic in scale. The authors argued that the study of the disease were done using exploratory and explanatory bivariate analysis, studies of the biochemistry and pathology fo the disease, and more focus on an individual user. 
+
+The authors of this paper sought to create a more macroscopic solution that apply more to the decision making of policy makers - and as a result this paper is more epidemiological in nature, and the results produced by this paper are not intended to be clinical in nature. But they hope that more information about the virus might be elucidated than just doing analysis on patient information. 
+
+The dataset analyzed, stored in the file `country_wise_latest.csv`, was scraped from the [Johns Hopkins Coronavirus Resource Center](https://www.google.com/url?sa=t&rct=j&q=&esrc=s&source=web&cd=&cad=rja&uact=8&ved=2ahUKEwi61Lun6o2FAxWOg4kEHbWbBNkQFnoECBMQAQ&url=https%3A%2F%2Fcoronavirus.jhu.edu%2F&usg=AOvVaw2XXlwWV2IXFAT4DfMAVC3W&opi=89978449) via a [scraping tool](https://github.com/imdevskp/covid_19_jhu_data_web_scrap_and_cleaning). The analysis of the paper was done from January 22, 2020 to August 15th, 2020. The scraper, however, updated its repository (replacing old data) until Johns Hopkins stopped updating its COVID-19 surveillance feed on March 10, 2023, and so the dataset represented by `country_wise_latest.csv` only archives the cases from January 22, 2020 to March 13th, 2023 and there is no way (unless the authors are contacted directly) to obtain the dataset used in their analysis. 
+
+The data consists of $n = 197$ countries across $15$ variables, 13 of which are continuous and used for the PCA. 
+
+`Country/Region` and `WHO Region` are the only variables that will not be utilized in the principal component analysis. They hope to then use K-means clustering on this dataset in order to cluster the countries based on these important variables. More information about the specifics of this analysis can be found in the next section. 
+
+# Statistical Methods Employed  
+The authors describe two algorithms they hope to analyze the data - one for PCA and the other for K-means, but as a side note these algorithms actually are better described as heuristics. 
+
+## Description and Analysis of Dataset
+The authors first described how WHO splits the world into different regions, and the number of countries in each region. They then display different statistics for each country based on the dataset, such as percentages of total deaths due to COVID-19 (with respect to the other countries), and countries with the highest values for different variables (namely Brazil, India, Russia, and US). This portion of the paper was less of a statistical analysis and more of a pure description of the dataset. 
+
+## Dimensionality Reduction using PCA
+The heuristic (algorithm) the authors hoped to employ is as follows: 
+
+### 1. Standardize the dataset. 
+The authors do not explain exactly how they chose to standardize the data, but they explained that the data must be scaled/normalized such that the covariance matrix generated operates on the same scale and subsequent PCA is not dominated by a single variable. 
+
+### 2. Generate a covariance matrix based on the continuous variables in the dataset. 
+They generate the covariance matrix for the scaled dataset, which is based on this formula: 
+
+$$
+\text{Cov}(X, Y) = \frac{\sum_{i = 1} ^ n (X_i - \bar{X})(Y_i - \bar{Y})}{(n - 1)}
+$$
+
+and generate the covariance matrix for each $(X_i, X_j)$. 
+
+### 3. Generate eigenvalues (magnitudes of variance captured) and eigenvectors (the principal components/directions of axes containing greatest variance) on the dataset. 
+
+### 4. Select an appropriate number based on proportion of variance explained.
+They then choose an appropriate number of principal components based on the proportion of variance explained (the corresponding eigenvalue for the principal component divided by the sum of all eigenvalues from the covariance matrix). Contrary to popular use of the elbow method, they chose the number of PC's that get as close to a PVE of 1 as possible. 
+
+### 5. Output the new dimension-reduced dataset. 
+
+## Community Detection Using Centroid Based K-Means Approach
+The heuristic the authors hoped to employ is as follows: 
+
+### 1. Choose K (achieved from Elbow method). 
+They use the elbow method for number of clusters vs. a cost function - the sum of squared distances of each data point to its assigned cluster. They obtained $K = 6$. 
+
+### 2. Construct K communities by assigning all data points to the nearest centroid. 
+
+### 3. Update centroids by calculating central data points of clusters. 
+
+### 4. Iterate above two steps until no datapoint is reassigned to another community.
+
+
+# Critique of Statistical Methods
+## Dimensionality Reduction using PCA
+While this dataset has some dimensionality, it perhaps does not have enough to justify PCA for dimension reduction in and of itself, and another paper with regression analysis might be also useful to explain relationships between variables and hypothesis testing might elucidate which variables are the most important in creating a model. It could also be used to quickly explain relationships between variables (assuming that they follow a mostly linear correlation), which is helpful especially after scaling in order to determine the salience of different variables, especially during clustering.
+
+The authors successfully reduced the number of dimensions in the dataset from 15 to 8, each dimension explaining the highest sequential axes of variance. In terms of assumptions for PCA, while they did not test that they were met, a couple of the traditional assumptions for PCA seem to be fulfilled. Mainly that all variables are continuous, that there is sampling accuracy (a global level was used for the dataset). But they did not test for linear relationships between the variables (as correlation is somewhat assumed as the axes generated is linear), no influence analysis was done on the dataset (some countries, such as the US, even after scaling/standardization might still have extremely high observation values), and no correlation analysis was done on the variables beforehand. 
+
+PCA also helps elucidate which variables might be the most important in terms of explaining variance, but that was omitted in this analysis. Many of the advantages of PCA were ommitted from the analysis (scores and loadings were not analyzed), and PCA was used as a means to make clustering more discriminatory. But especially after standardizing, there is some merit to this, as only the 8 axes contributing to the direction of most variance will be used for the clustering. 
+
+Lastly, the selection method of PCA also hints at the authors' true intentions for their utilization of PCA - mostly to make clustering more discriminatory. They selected a number of PC's that maximize the PVE - making it as close to 1 as possible. This makes the PCA model very difficult to interpret, but it allows the clustering to be based on more directions of variance, and so it optimizes between not being as noisy as using the dataset alone, and keeping as much information about the original dataset as possible. Especially since PCA helps eliminate collinearity issues because each principal component is orthogonal to the rest, the clustering method in theory (and they showed this empirically as well) is more robust.
+
+## Community Detection Using Centroid Based K-Means Approach
+After PCA, the authors conducted K-means clustering, an optimization problem which seeks to minimize the within cluster variance. First they selected a number of centroids, K, via a cost function - the total within sum of squares for each centroid. They balanced between this value and the meaningfulness of the clusters generated. After generating the clusters, they compared cluster resolution subjectively between before and after PCA, but a more quantitative measure such as calculating average within cluster sum of squares or within cluster variance might make their justification of PCA more robust. 
+
+And just as with PCA, the authors chose not to interpret the clusters generated by clustering, the ease of interpretation of K-means clustering being one of its main advantages. In addition, there are hypothesis tests available which test the variables (or in this case principal components) most important in clustering. Finding the principal components that generate a cluster and the variables that contribute the most to the principal components might hint at an underlying structure that is implied by the clustering to discriminate the different countries from each other. The authors also displayed different WHO regions and showed the total number of countries contained within a given cluster. 
+
+One of the main advantages of this clustering method is that because it is based on Euclidean distances, the clusters can be non-symmetric and can adopt any number of shapes and sizes, and especially since the axes and relative spread of the PCA might be non-symmetric as well, K-means makes an excellent partner. However, the main drawback is that the selection of K is still somewhat arbitrary, as are initial conditions, and the authors would have benefitted from a cross-validation or bootstrapping of their K-means clustering. In addition, both PCA and K-means clustering are still sensitive to outliers, and so the authors could also have benefited from influence analysis/ 
+
+# Conclusion
+The methodology presented by the authors is sound - PCA and K-means clustering complement each other's drawbacks and are easy to interpret. Especially for COVID-19, ease of interpretation could make it simpler to non-experts about socioeconomic decisions to help curb the spread of the pandemic. These methods are also computationally less expensive, and so theoretically if this dataset were to be continuously updated, this analysis could be repeated to see how loadings, scores, and clusters change over time. This creates a very simple way to take a somewhat complicated dataset and be able to explain not only important variables but potentially their relationships.
+
+However, the author's analysis of this dataset left out many methodologies that draw on the main advantages of PCA and clustering. They chose not to interpret their results and simply display them, and not test if assumptions for each were met, if there were any influential observations (PCA and K-means are both susceptible to these), and if these tests were even appropriate. While they stated their goal was to find important variables and cluster countries based on directions of greatest variance and hopefully draw meaningful conclusions, this paper proves mostly as a proof of concept for PCA and K-means clustering, and not a fully-fleshed out exploratory analysis of the dataset.  

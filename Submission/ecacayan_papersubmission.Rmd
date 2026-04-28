@@ -1,0 +1,95 @@
+---
+title: "STAT 488 Project 2: Paper Submission and Data Proposal"
+author: "Emil Cacayan (ecacayan)"
+date: "03/24/2024"
+header-includes: 
+    - \usepackage{setspace}\doublespacing
+output:
+  pdf_document: default
+  html_document:
+    theme: readable
+    toc: yes
+urlcolor: cyan
+---
+
+```{r, echo = FALSE, warning = FALSE}
+knitr::opts_chunk$set(tidy.opts=list(width.cutoff=80), tidy=TRUE)
+```
+
+# Package Loading
+For this submission, we will be utilizing the following packages (Appendix L). 
+
+* `readr`: Allows for more sane and efficient reading of rectangular (e.g. `.csv`) data. 
+
+```{r, echo = FALSE, warning = FALSE, message = FALSE}
+library(readr)
+```
+
+# Introduction
+Exploratory analysis is can be difficult because what is often encountered is data with dimensionality greater than sample size ($p >> n$). Dimensionality reduction, particularly that of PCA, is quite popular for a few reasons: 
+  
+  * Reduction of computational overhead for subsequent analysis (such as for clustering). 
+  * Reducing for orthogonal axes of greatest variance tends to also reduce noise. 
+  * Correlation between principal components and variables allows for selection for features salient to data variance.
+  * Reduction of collinearity in variables by transforming them into new uncorrelated (orthogonal) variables.
+
+In the paper published by Chaudhary & Singh, use dimensionality reduction and subsequent K-means clustering to create different clusters of countries and find the most significant variables (2021). It was found that K-means clustering after subsequent PCA was more precise, and so clustering into communities can help potential public health leaders to determine which communities are most disparaged. A copy of the paper can be found in `s13278-021-00734-2.pdf`. 
+
+# The Data
+
+The data was scraped from the [Johns Hopkins Coronavirus Resource Center](https://www.google.com/url?sa=t&rct=j&q=&esrc=s&source=web&cd=&cad=rja&uact=8&ved=2ahUKEwi61Lun6o2FAxWOg4kEHbWbBNkQFnoECBMQAQ&url=https%3A%2F%2Fcoronavirus.jhu.edu%2F&usg=AOvVaw2XXlwWV2IXFAT4DfMAVC3W&opi=89978449) using a [scraping tool](https://github.com/imdevskp/covid_19_jhu_data_web_scrap_and_cleaning) - the data saved as `.csv` files.
+
+The paper conducted its analysis from the number of cases from January 22nd, 2020 to August 15th, 2020. However, the scraper updated its repository until Johns Hopkins stopped updating its COVID-19 surveillance feed on March 10, 2023. ANd so this dataset represents the number of cases from January 22, 2020 to March 10, 2023 (the publishers of the paper only linked to the Github repository - and no archives exist, but a comparison between the results published by the paper and how the pandemic changed the course of the last couple of years can be done - especially now that the sample size across the countries has significantly increased). 
+
+The data consists of $n = 187$ countries across $15$ variables, 13 of which are continuous (the PCA will be done on the 13 variables) - these will likely be renamed later for ease of use in `R`: 
+
+* `Country/Region`: The country/region of the observation. 
+* `Confirmed`: The number of confirmed cases. 
+* `Deaths`: The number of COVID-19 deaths. 
+* `Active`: The number of active cases (on the day recorded). 
+* `New cases`: The number of new cases (on the day recorded). 
+* `New deaths`: The number of new deaths (on the day recorded). 
+* `Deaths / 100 Cases`: The number of deaths per one hundred cases. 
+* `Recovered / 100 Cases`: The number of recoveries per one hundred cases. 
+* `Deaths / 100 Recovered`: The number of deaths that occurred per 100 recovered cases. 
+* `Confirmed last week`: The number of cases confirmed the previous week. 
+* `1 week change`: The change in the number of cases over the course of the week. 
+* `1 week % increase`: The previous variable scaled to a percentage. 
+* `WHO Region`: The region the country belongs to. 
+
+I seek to recreate the analysis done by this paper, and so for this project I will be doing [option 2]{.underline}, where I combine project 2 and the paper. 
+
+Here the data is imported and the first 10 data points are displayed. The full dataset is viewable in the file `ecacayan_viewdata.html`.
+
+```{r, echo = FALSE, warning = FALSE}
+# Reading the data into R.
+covid.data <- read_csv("country_wise_latest.csv", show_col_types = FALSE)
+
+# Displaying the first 10 observations of dataset. 
+head(covid.data, n = 10)
+```
+
+# Appendix 
+
+The following sections of the appendix are split as: 
+
+* **Appendix L**: Package Loading
+* **Appendix D**: Dataset
+
+# Appendix L
+```{r, eval = FALSE}
+library(readr)
+```
+
+# Appendix D
+```{r, eval = FALSE}
+# Reading the data into R.
+covid.data <- read_csv("country_wise_latest.csv", show_col_types = FALSE)
+
+# Displaying the first 10 observations of dataset. 
+head(covid.data, n = 10)
+```
+
+# References
+Chaudhary, L., & Singh, B. (2021). Community detection using unsupervised machine learning techniques on COVID-19 dataset. Social network analysis and mining, 11(1), 28. https://doi.org/10.1007/s13278-021-00734-2
+

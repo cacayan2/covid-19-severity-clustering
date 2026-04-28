@@ -1,0 +1,136 @@
+```{r}
+library(readr)
+library(ggplot2)
+```
+
+
+
+```{r}
+country_wise <- read_csv("country_wise_latest.csv", show_col_types = FALSE)
+colnames(country_wise)
+colnames(country_wise) <- c("country", "confirmed", "deaths", "recovered", "active", "new.cases", "new.deaths", "new.recovered", "deaths100c", "recovered100c", "deaths100r", "confirmed.lastweek", "one.week.diff", "one.week.pct.inc", "who.region")
+```
+
+```{r}
+analysis_bar <- barplot(table(country_wise$who.region), 
+        main = "Countries in Analysis", 
+        ylab = "Number of Countries",
+        col = c("goldenrod", "darkorchid2", "deeppink2", "darkturquoise", "chartreuse3", "coral"),
+        cex.names = 0.59, 
+        ylim = c(0, 65))
+text(x = c(0.7, 1.9, 3.1, 4.3, 5.5, 6.7), y = table(country_wise$who.region) + 4, labels = as.character(table(country_wise$who.region)))
+```
+
+```{r}
+levels(as.factor(country_wise$who.region))
+```
+
+
+```{r}
+region.deaths <- (c(
+  "Africa" = sum(subset(country_wise$deaths, subset = country_wise$who.region == "Africa")),
+  "Americas" = sum(subset(country_wise$deaths, subset = country_wise$who.region == "Americas")),
+  "Eastern Mediterranean" = sum(subset(country_wise$deaths, subset = country_wise$who.region == "Eastern Mediterranean")),
+  "Europe" = sum(subset(country_wise$deaths, subset = country_wise$who.region == "Europe")),
+  "South-East Asia" = sum(subset(country_wise$deaths, subset = country_wise$who.region == "South-East Asia")),
+  "Western Pacific" = sum(subset(country_wise$deaths, subset = country_wise$who.region == "Western Pacific"))))
+
+region.deaths.pct <- region.deaths / sum(country_wise$deaths) * 100
+
+pct.deaths_bar <- barplot(region.deaths.pct, 
+        main = "Percentage of Death by Who Region", 
+        ylab = "Total Deaths Percentage",
+        col = c("goldenrod", "darkorchid2", "deeppink2", "darkturquoise", "chartreuse3", "coral"),
+        cex.names = 0.59, 
+        ylim = c(0, 65))
+text(x = c(0.7, 1.9, 3.1, 4.3, 5.5, 6.7), y = region.deaths.pct + 4, labels = paste(as.character(round(region.deaths.pct, 2)), "%", sep = ""))
+```
+
+```{r}
+country_wise[, 11] <- ifelse(!is.finite(country_wise$deaths100r), 0, country_wise$deaths100r)
+country.pca <- prcomp(country_wise[, 2:14], scale = TRUE)
+
+library(factoextra)
+library(broom)
+
+fviz_screeplot(country.pca)
+
+View(country.pca$rotation[, 1:3])
+fviz_pca_var(country.pca,
+             col.var = "contrib", # Color by contributions to the PC
+                                 gradient.cols = c("#00AFBB", "#E7B800", "#FC4E07"),
+                                 repel = TRUE)
+
+pairs(country_wise_scaled[,3:9])
+country_wise_scaled <- scale(country_wise[2:14])
+country_wise_scaled
+```
+
+```{r}
+fviz_pca_ind(country.pca,
+             col.ind = "cos2", # Color by the quality of representation
+             gradient.cols = c("#00AFBB", "#E7B800", "#FC4E07"),
+             repel = TRUE     # Avoid text overlapping
+             )
+```
+
+```{r}
+country_nopca_clustering <- kmeans(scale(country_wise[2:14]), centers = 6)
+country_wise.scaled$clusters <- country_nopca_clustering$clusters
+country_wise$clusters.nopca <- country_nopca_clustering$cluster
+country_wise.transformed = as.data.frame(-country.pca$x[, 1:8])
+fviz_nbclust(country_wise.transformed, kmeans, method = 'wss')
+
+View(country_wise)
+library(ggplot2)
+library(sf)
+
+kmeans_country.nopca = kmeans(country_wise[2:14], centers = 6)
+kmeans_country.pca = kmeans(country_wise.transformed, centers = 6)
+
+par(mfrow = c(1, 2))
+
+kmeans_country.nopca
+kmeans_country.pca
+
+fviz_cluster(kmeans_country.nopca, data = country_wise[2:14])
+fviz_cluster(kmeans_country.pca, data = country_wise.transformed)
+```
+
+```{r}
+country_wise$clusters.pca <- kmeans_country.pca$cluster
+View(country_wise)
+levels(as.factor(country_wise$who.region))
+barplot(table(subset(country_wise$clusters.pca, subset = country_wise$who.region == "Africa")), 
+        xlab = "Cluster", 
+        ylab = "Count", 
+        main = "Clusters for Africa", col = c(1, 2, 3, 4, 5, 6))
+barplot(table(subset(country_wise$clusters.pca, subset = country_wise$who.region == "Americas")), 
+        xlab = "Cluster", 
+        ylab = "Count", 
+        main = "Clusters for Americas", col = c(1, 2, 3, 4, 5, 6))
+barplot(table(subset(country_wise$clusters.pca, subset = country_wise$who.region == "Eastern Mediterranean")), 
+        xlab = "Cluster", 
+        ylab = "Count", 
+        main = "Clusters for Eastern Mediterranean", col = c(1, 2, 3, 4, 5, 6))
+barplot(table(subset(country_wise$clusters.pca, subset = country_wise$who.region == "Europe")), 
+        xlab = "Cluster", 
+        ylab = "Count", 
+        main = "Clusters for Europe", col = c(1, 2, 3, 4, 5, 6))
+barplot(table(subset(country_wise$clusters.pca, subset = country_wise$who.region == "South-East Asia")), 
+        xlab = "Cluster", 
+        ylab = "Count", 
+        main = "Clusters for South-East Asia", col = c(1, 2, 3, 4, 5, 6))
+barplot(table(subset(country_wise$clusters.pca, subset = country_wise$who.region == "Western Pacific")), 
+        xlab = "Cluster", 
+        ylab = "Count", 
+        main = "Clusters for Western Pacific", col = c(1, 2, 3, 4, 5, 6))
+barplot()
+```
+
+Now we can view each of the four maps. The first map shows K = 6 with and without PCA. 
+
+```{r }
+
+```
+

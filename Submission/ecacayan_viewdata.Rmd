@@ -1,0 +1,19 @@
+---
+title: "STAT 488 Paper Submission (View Data)"
+author: "Emil Cacayan (ecacayan)"
+date: "03/24/2024"
+header-includes: 
+    - \usepackage{setspace}\doublespacing
+output:
+  pdf_document: default
+  html_document:
+    theme: readable
+    toc: yes
+urlcolor: cyan
+---
+
+```{r, echo = FALSE, message = FALSE, warning = FALSE}
+library(readr)
+covid.data<- read_csv("country_wise_latest.csv", show_col_types = FALSE)
+knitr::kable(covid.data, caption = "Selected Worldwide COVID-19 Statistics, 1/22/20 - 3/10/23")
+```
