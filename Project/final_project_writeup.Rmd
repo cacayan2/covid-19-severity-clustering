@@ -1,13 +1,10 @@
 ---
-title: "Final Final Project Writeup, STAT 488 Spring 2024"
+title: "COVID-19 Severity Clustering"
 author: "Emil Cacayan (ecacayan)"
 date: "May 2, 2024"
 header-includes:
   - \usepackage{setspace}\doublespacing
-output:
-  pdf_document: default
-  html_document: 
-    toc: yes
+output: github_document
 urlcolor: cyan
 ---
 
